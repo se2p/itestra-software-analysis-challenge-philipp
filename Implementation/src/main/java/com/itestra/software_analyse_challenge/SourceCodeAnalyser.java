@@ -3,8 +3,12 @@ package com.itestra.software_analyse_challenge;
 import org.apache.commons.cli.*;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class SourceCodeAnalyser {
 
@@ -15,13 +19,32 @@ public class SourceCodeAnalyser {
      * @return mapping from filename -> {@link Output} object.
      */
     public static Map<String, Output> analyse(Input input) {
-        // TODO insert your Code here.
+        Map<String, Output> result = new HashMap<>();
+        LineCounter lineCounter = new LineCounter();
+        try (Stream<Path> paths = Files.walk(input.getInputDirectory().toPath())) {
+            paths
+                    .filter(Files::isRegularFile)
+                    .filter(path -> path.toString().endsWith(".java"))
+                    .forEach(path -> {
+                        try {
+                            String content = Files.readString(path);
+
+                            result.put(path.toString(), new Output(lineCounter.readFile(content), null));
+                        } catch (IOException e) {
+                            System.err.println("Failed to read file: " + path);
+                            e.printStackTrace();
+                        }
+                    });
+        } catch (IOException e) {
+            System.err.println("Error walking directory: " + input.getInputDirectory().getPath());
+            e.printStackTrace();
+        }
 
         // For each file put one Output object to your result map.
         // You can extend the Output object using the functions lineNumberBonus(int), if you did
         // the bonus exercise.
 
-        return Collections.emptyMap();
+        return result;
     }
 
 
