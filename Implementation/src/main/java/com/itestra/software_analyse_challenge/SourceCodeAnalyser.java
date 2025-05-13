@@ -20,7 +20,13 @@ public class SourceCodeAnalyser {
      */
     public static Map<String, Output> analyse(Input input) {
         Map<String, Output> result = new HashMap<>();
+
+        // Task 1
         LineCounter lineCounter = new LineCounter();
+
+        // Task 2
+        DependencyAnalysis dependencyAnalysis = new DependencyAnalysis();
+
         try (Stream<Path> paths = Files.walk(input.getInputDirectory().toPath())) {
             paths
                     .filter(Files::isRegularFile)
