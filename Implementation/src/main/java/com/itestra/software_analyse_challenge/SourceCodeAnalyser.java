@@ -28,8 +28,10 @@ public class SourceCodeAnalyser {
                     .forEach(path -> {
                         try {
                             String content = Files.readString(path);
+                            int loc = lineCounter.readFile(content);
+                            Set<String> projectDependencies = dependencyAnalysis.getProjectDependenciesForPath(path);
 
-                            result.put(path.toString(), new Output(lineCounter.readFile(content), null));
+                            result.put(path.toString(), new Output(loc, projectDependencies.stream().toList()));
                         } catch (IOException e) {
                             System.err.println("Failed to read file: " + path);
                             e.printStackTrace();
