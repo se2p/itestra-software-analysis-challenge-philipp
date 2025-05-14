@@ -19,13 +19,13 @@ public class SourceCodeAnalyser {
      * @return mapping from filename -> {@link Output} object.
      */
     public static Map<String, Output> analyse(Input input) {
-        Map<String, Output> result = new HashMap<>();
+        final Map<String, Output> result = new HashMap<>();
 
-        // Task 1
-        LineCounter lineCounter = new LineCounter();
+        // Task 1 2
+        final LineCounter lineCounter = new LineCounter();
 
         // Task 2
-        DependencyAnalysis dependencyAnalysis = new DependencyAnalysis();
+        final DependencyAnalysis dependencyAnalysis = new DependencyAnalysis();
 
         try (Stream<Path> paths = Files.walk(input.getInputDirectory().toPath())) {
             paths
@@ -33,11 +33,13 @@ public class SourceCodeAnalyser {
                     .filter(path -> path.toString().endsWith(".java"))
                     .forEach(path -> {
                         try {
-                            String content = Files.readString(path);
-                            int loc = lineCounter.readFile(content);
-                            Set<String> projectDependencies = dependencyAnalysis.getProjectDependenciesForPath(path);
+                            final List<String> content = Files.readAllLines(path);
 
-                            result.put(path.toString(), new Output(loc, projectDependencies.stream().toList()));
+                            final int sourceLinesOfCode = lineCounter.readFile(content);
+                            final Set<String> projectDependencies = dependencyAnalysis.getProjectDependenciesForPath(path);
+                            final int lineNumberBonus = lineCounter.readFileBonus(content);
+
+                            result.put(path.toString(), new Output(sourceLinesOfCode, projectDependencies.stream().toList()).lineNumberBonus(lineNumberBonus));
                         } catch (IOException e) {
                             System.err.println("Failed to read file: " + path);
                             e.printStackTrace();
