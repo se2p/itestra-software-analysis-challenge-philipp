@@ -21,9 +21,6 @@ public class SourceCodeAnalyser {
     public static Map<String, Output> analyse(Input input) {
         final Map<String, Output> result = new HashMap<>();
 
-        // Task 1 2
-        final LineCounter lineCounter = new LineCounter();
-
         // Task 2
         final DependencyAnalysis dependencyAnalysis = new DependencyAnalysis();
 
@@ -33,11 +30,14 @@ public class SourceCodeAnalyser {
                     .filter(path -> path.toString().endsWith(".java"))
                     .forEach(path -> {
                         try {
-                            final List<String> content = Files.readAllLines(path);
+                            final String content = Files.readString(path);
 
-                            final int sourceLinesOfCode = lineCounter.readFile(content);
-                            final Set<String> projectDependencies = dependencyAnalysis.getProjectDependenciesForPath(path);
-                            final int lineNumberBonus = lineCounter.readFileBonus(content);
+                            // Task 1
+                            final int sourceLinesOfCode = LineCounter.readFile(content);
+                            // Task 2
+                            final Set<String> projectDependencies = dependencyAnalysis.getProjectDependenciesForPath(input.getInputDirectory().toPath(), path);
+                            // Task 3
+                            final int lineNumberBonus = LineCounter.readFileBonus(content);
 
                             result.put(path.toString(), new Output(sourceLinesOfCode, projectDependencies.stream().toList()).lineNumberBonus(lineNumberBonus));
                         } catch (IOException e) {

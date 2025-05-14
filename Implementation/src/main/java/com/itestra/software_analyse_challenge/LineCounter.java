@@ -1,13 +1,11 @@
 package com.itestra.software_analyse_challenge;
 
-import java.util.List;
-
 public class LineCounter {
 
-    public int readFile(List<String> fileContent) {
+    public static int readFile(final String fileContent) {
         int counter = 0;
-        for (final String line : fileContent) {
-            CodeState currentState = CodeState.getCodeStateForLine(line);
+        for (final String line : fileContent.split("\n")) {
+            CodeState currentState = CodeState.getCodeStateForLine(false, line);
             if (currentState.isCountLine()) {
                 counter++;
             }
@@ -15,12 +13,16 @@ public class LineCounter {
         return counter;
     }
 
-    public int readFileBonus(List<String> fileContent) {
+    public static int readFileBonus(final String fileContent) {
         int counterBonus = 0;
-        for (final String line : fileContent) {
-
+        final String contentWithoutGetters = fileContent.replaceAll(CodeState.GETTER.getPattern(), "\n");
+        for (final String line : contentWithoutGetters.split("\n")) {
+            CodeState currentState = CodeState.getCodeStateForLine(true, line);
+            if (currentState.isCountLine()) {
+                counterBonus++;
+            }
         }
-        return 0;
+        return counterBonus;
     }
 
 }

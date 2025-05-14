@@ -14,17 +14,18 @@ public class DependencyAnalysis {
     private final static String ALLOWED_PATTERN = "import\\s+(cronutils|fig|spark)\\.(?!.*\\.\\*\\s*;).*;";
     private final Map<String, Set<String>> fileToDependencies = new HashMap<>(); // Files already evaluated do not need to be evaluated again
 
-    public Set<String> getProjectDependenciesForPath(Path path) throws IOException {
-        return filterProjectName(evaluateDependenciesForPath(path));
+    public Set<String> getProjectDependenciesForPath(final Path inputDirectory, Path filePath) throws IOException {
+        final Set<String> dependenciesForPath = evaluateDependenciesForPath(inputDirectory, filePath);
+        return filterProjectName(inputDirectory, dependenciesForPath);
     }
 
-    private Set<String> evaluateDependenciesForPath(final Path path) throws IOException {
-        if (path == null) {
+    private Set<String> evaluateDependenciesForPath(final Path inputDirectory, final Path filePath) throws IOException {
+        if (filePath == null) {
             return Set.of();
         }
 
-        if (fileToDependencies.containsKey(path.toString())) {
-            return fileToDependencies.get(path.toString());
+        if (fileToDependencies.containsKey(filePath.toString())) {
+            return fileToDependencies.get(filePath.toString());
         }
 
         final Set<String> dependencies = new HashSet<>();
@@ -32,30 +33,30 @@ public class DependencyAnalysis {
         // First time analysing file fill map
         // so that other files having this file as a dependency
         // do not run in an infinite loop
-        fileToDependencies.put(path.toString(), dependencies);
+        fileToDependencies.put(filePath.toString(), dependencies);
 
-        final String content = Files.readString(path);
+        final String content = Files.readString(filePath);
         final Matcher importMatcher = Pattern
                 .compile(ALLOWED_PATTERN)
                 .matcher(content);
 
         while (importMatcher.find()) {
-            final Path dependency = convertImportToPath(importMatcher.group());
+            final Path dependency = convertImportToPath(inputDirectory, importMatcher.group());
             // current dependency
             dependencies.add(dependency.toString());
             // dependencies of all indirect dependencies
-            dependencies.addAll(evaluateDependenciesForPath(dependency));
+            dependencies.addAll(evaluateDependenciesForPath(inputDirectory, dependency));
         }
 
-        fileToDependencies.put(path.toString(), dependencies);
+        fileToDependencies.put(filePath.toString(), dependencies);
 
         return dependencies;
     }
 
-    private Set<String> filterProjectName(Set<String> fileNames) {
+    private Set<String> filterProjectName(final Path inputDirectory, Set<String> fileNames) {
         final Set<String> result = new HashSet<>();
         for (String file : fileNames) {
-            String[] split = file.replace(SourceCodeAnalyser.DEFAULT_INPUT_DIR, "").split("\\\\");
+            String[] split = file.replace(inputDirectory.toString() + "\\", "").split("\\\\");
             if (split.length > 0 && ALLOWED_PROJECTS.contains(split[0])) {
                 result.add(split[0]);
             }
@@ -63,13 +64,13 @@ public class DependencyAnalysis {
         return result;
     }
 
-    private Path convertImportToPath(final String importStatement) {
+    private Path convertImportToPath(final Path inputDirectory, final String importStatement) {
         final String formattedPath = importStatement
                 .replaceAll("import", "")
                 .replaceAll("\\.", "/")
                 .replaceAll(";", "")
                 .replaceAll(" ", "");
 
-        return Paths.get(SourceCodeAnalyser.DEFAULT_INPUT_DIR + formattedPath + ".java");
+        return Paths.get(inputDirectory.toString() + "\\" + formattedPath + ".java");
     }
 }
