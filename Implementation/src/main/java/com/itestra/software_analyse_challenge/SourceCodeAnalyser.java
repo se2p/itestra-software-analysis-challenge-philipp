@@ -33,11 +33,11 @@ public class SourceCodeAnalyser {
                             final String content = Files.readString(path);
 
                             // Task 1
-                            final int sourceLinesOfCode = LineCounter.readFile(content);
+                            final int sourceLinesOfCode = LineCounter.countSourceLinesOfCode(content);
                             // Task 2
                             final Set<String> projectDependencies = dependencyAnalysis.getProjectDependenciesForPath(input.getInputDirectory().toPath(), path);
                             // Task 3
-                            final int lineNumberBonus = LineCounter.readFileBonus(content);
+                            final int lineNumberBonus = LineCounter.countSourceLinesOfCodeBonus(content);
 
                             result.put(path.toString(), new Output(sourceLinesOfCode, projectDependencies.stream().toList()).lineNumberBonus(lineNumberBonus));
                         } catch (IOException e) {

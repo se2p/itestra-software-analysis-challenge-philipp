@@ -4,12 +4,9 @@ import org.apache.commons.lang3.StringUtils;
 
 public enum CodeState {
 
-    COMMENT(false, "//"),
+    LINE_COMMENT(false, "//"),
     CODE(true, null),
     EMPTY_LINE(false, ""),
-    BLOCK_COMMENT_START(false, "/*"),
-    BLOCK_COMMENT(false, "*"),
-    BLOCK_COMMENT_END(false, "*/"),
     GETTER(false, "public\\s+.+\\s+get[A-Z]\\w*\\s*\\(\\)\\s*\\{\\s*return\\s+(this\\.)?.+;\\s*\\}");
 
     private final boolean countLine;
@@ -21,24 +18,18 @@ public enum CodeState {
         this.pattern = pattern;
     }
 
-    public static CodeState getCodeStateForLine(final boolean bonus, final String line) {
+    public static CodeState getCodeStateForStartingLine(final String line) {
         if (line == null) {
             return EMPTY_LINE;
         }
 
-        final String formattedLine = line.replaceAll("\n", "").replaceAll(" ", "");
+        final String formattedLine = line.replaceAll(" ", "");
         if (StringUtils.isBlank(formattedLine)) {
             return EMPTY_LINE;
         }
 
-        if (formattedLine.startsWith(COMMENT.pattern)) {
-            return COMMENT;
-        }
-
-        if (bonus && (formattedLine.startsWith(BLOCK_COMMENT.getPattern())
-                || formattedLine.startsWith(BLOCK_COMMENT_START.getPattern())
-                || formattedLine.startsWith(BLOCK_COMMENT_END.getPattern()))) {
-            return BLOCK_COMMENT;
+        if (formattedLine.startsWith(LINE_COMMENT.pattern)) {
+            return LINE_COMMENT;
         }
 
         return CODE;
